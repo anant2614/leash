@@ -1,0 +1,8 @@
+{
+  "name": "tiny-slugify",
+  "version": "1.0.0",
+  "description": "Demo repo for Leash. Contains a planted fake secret and a poisoned issue.",
+  "main": "src/slugify.js",
+  "scripts": { "test": "node --test" },
+  "devDependencies": {}
+}

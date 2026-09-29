@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Leash</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2230; --border:#2d333b;
+    --fg:#e6edf3; --muted:#8b949e; --green:#3fb950; --red:#f85149;
+    --amber:#d29922; --blue:#58a6ff; --accent:#a371f7;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+       background:var(--bg);color:var(--fg)}
+  header{display:flex;align-items:center;gap:14px;padding:14px 22px;border-bottom:1px solid var(--border);
+         position:sticky;top:0;background:var(--bg);z-index:5}
+  header h1{font-size:18px;margin:0;letter-spacing:.5px}
+  header .tag{color:var(--muted);font-size:12px}
+  .counts{margin-left:auto;display:flex;gap:10px}
+  .pill{padding:4px 12px;border-radius:999px;font-weight:600;font-size:12px;border:1px solid var(--border);background:var(--panel)}
+  .pill.a{color:var(--green)} .pill.b{color:var(--red)} .pill.p{color:var(--amber)}
+  main{display:grid;grid-template-columns:1.35fr 1fr;gap:16px;padding:16px 22px;max-width:1400px;margin:0 auto}
+  @media(max-width:900px){main{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+  .card h2{font-size:13px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);
+           margin:0;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--panel2)}
+  .feed{max-height:60vh;overflow:auto}
+  .ev{display:grid;grid-template-columns:64px 1fr auto;gap:10px;padding:9px 16px;border-bottom:1px solid #21262d;align-items:baseline}
+  .ev:last-child{border-bottom:0}
+  .disp{font-weight:700;font-size:11px;letter-spacing:.5px}
+  .ALLOWED{color:var(--green)} .DENIED,.BLOCKED{color:var(--red)}
+  .ev .dest{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;word-break:break-all}
+  .ev .meta{color:var(--muted);font-size:11px}
+  .verdict{font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;white-space:nowrap}
+  .legitimate{background:rgba(63,185,80,.15);color:var(--green)}
+  .suspicious{background:rgba(248,81,73,.15);color:var(--red)}
+  .unclear{background:rgba(210,153,34,.15);color:var(--amber)}
+  .rat{grid-column:2/4;color:var(--muted);font-size:12px;margin-top:2px}
+  .sig{grid-column:2/4;font-size:11px;color:#768390;margin-top:2px}
+  .prop{padding:14px 16px;border-bottom:1px solid #21262d}
+  .prop:last-child{border-bottom:0}
+  .prop .key{font-family:ui-monospace,monospace;color:var(--blue);font-weight:600}
+  .prop .why{color:var(--muted);font-size:12.5px;margin:6px 0 10px}
+  pre{background:#0b0f14;border:1px solid var(--border);border-radius:6px;padding:10px;overflow:auto;
+      font-family:ui-monospace,monospace;font-size:11.5px;color:#c9d1d9;margin:0 0 10px;max-height:160px}
+  .btns{display:flex;gap:8px}
+  button{cursor:pointer;border:1px solid var(--border);border-radius:6px;padding:6px 14px;font-weight:600;font-size:12.5px;color:var(--fg);background:var(--panel2)}
+  button.ok{background:rgba(63,185,80,.15);border-color:var(--green);color:var(--green)}
+  button.no{background:rgba(248,81,73,.12);border-color:#5c2b2b;color:var(--red)}
+  button:hover{filter:brightness(1.2)}
+  .empty{padding:18px 16px;color:var(--muted)}
+  .polrow{padding:10px 16px;border-bottom:1px solid #21262d}
+  .polrow:last-child{border-bottom:0}
+  .polrow .k{font-family:ui-monospace,monospace;color:var(--accent);font-weight:600;font-size:13px}
+  .polrow .hosts{font-family:ui-monospace,monospace;font-size:11.5px;color:#adbac7}
+  .polrow .exp{color:var(--muted);font-size:12px;margin-top:3px}
+  a.dl{color:var(--blue);text-decoration:none;font-size:12px}
+  .status{margin-left:8px;font-size:11px;color:var(--amber)}
+  .approved{opacity:.55}
+</style>
+</head>
+<body>
+<header>
+  <h1>🐕‍🦺 Leash</h1>
+  <span class="tag">least-privilege autopilot for coding agents</span>
+  <div class="counts">
+    <span class="pill a" id="c-allowed">allowed 0</span>
+    <span class="pill b" id="c-blocked">blocked 0</span>
+    <span class="pill p" id="c-pending">approvals 0</span>
+  </div>
+</header>
+<main>
+  <div>
+    <div class="card">
+      <h2>Live activity</h2>
+      <div class="feed" id="feed"><div class="empty">Waiting for events…</div></div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <h2>Pending approvals</h2>
+      <div id="props"><div class="empty">No proposals yet.</div></div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Active policy &nbsp;·&nbsp; <a class="dl" href="/api/policy.yaml" target="_blank">policy.yaml ↗</a></h2>
+    <div id="policy"><div class="empty">Loading…</div></div>
+  </div>
+</main>
+<script>
+const esc = s => (s??"").toString().replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+async function refresh(){
+  let s; try{ s = await (await fetch("/api/state")).json(); }catch(e){ return; }
+  document.getElementById("c-allowed").textContent = "allowed "+s.counts.allowed;
+  document.getElementById("c-blocked").textContent = "blocked "+s.counts.blocked;
+  document.getElementById("c-pending").textContent = "approvals "+s.counts.pending;
+  renderFeed(s.events); renderProps(s.proposals); renderPolicy(s.policy, s.explanations);
+}
+
+function renderFeed(events){
+  const el = document.getElementById("feed");
+  const net = events.filter(e => ["NET","HTTP"].includes(e.kind) && e.action);
+  if(!net.length){ el.innerHTML='<div class="empty">Waiting for events…</div>'; return; }
+  el.innerHTML = net.map(e=>{
+    const dest = e.host ? `${esc(e.host)}:${e.port||443}${e.path&&e.path!=="/"?esc(e.path):""}` : esc(e.message);
+    const t = e.triage;
+    let extra = "";
+    if(t){
+      extra = `<div class="rat">${esc(t.rationale)} <span style="color:#586069">· ${esc(t.engine)}</span></div>`;
+      const sig = (t.signals||[]).slice(0,2).map(esc).join(" · ");
+      if(sig) extra += `<div class="sig">${sig}</div>`;
+    }
+    const badge = t ? `<span class="verdict ${t.verdict}">${t.verdict}</span>` : "";
+    return `<div class="ev">
+      <span class="disp ${e.action}">${e.action}</span>
+      <span><span class="dest">${dest}</span><div class="meta">${esc(e.method||"CONNECT")} · ${esc(e.binary||"?")} · rule ${esc(e.rule||"-")}${e.reason?" · "+esc(e.reason):""}</div></span>
+      ${badge}${extra}
+    </div>`;
+  }).join("");
+}
+
+function renderProps(props){
+  const el = document.getElementById("props");
+  const list = props.filter(p=>p.status!=="denied");
+  if(!list.length){ el.innerHTML='<div class="empty">No proposals yet.</div>'; return; }
+  el.innerHTML = list.map(p=>{
+    const done = p.status!=="pending";
+    return `<div class="prop ${done?'approved':''}">
+      <div><span class="key">${esc(p.rule_key)}</span>${done?`<span class="status">${esc(p.status)}</span>`:""}</div>
+      <div class="why">${esc(p.why)}</div>
+      <pre>${esc(JSON.stringify(p.rule,null,1))}</pre>
+      ${done?"":`<div class="btns">
+        <button class="ok" onclick="act('approve','${p.id}')">Approve</button>
+        <button class="no" onclick="act('deny','${p.id}')">Deny</button></div>`}
+    </div>`;
+  }).join("");
+}
+
+function renderPolicy(policy, exp){
+  const el = document.getElementById("policy");
+  const rules = (policy&&policy.network_policies)||{};
+  const keys = Object.keys(rules);
+  if(!keys.length){ el.innerHTML='<div class="empty">No network rules (all outbound denied).</div>'; return; }
+  el.innerHTML = keys.map(k=>{
+    const r = rules[k];
+    const hosts = (r.endpoints||[]).map(e=>`${e.host}:${e.port||443}${e.access?" ("+e.access+")":""}`).join(", ");
+    return `<div class="polrow">
+      <div class="k">${esc(k)}</div>
+      <div class="hosts">${esc(hosts)}</div>
+      ${exp[k]?`<div class="exp">${esc(exp[k])}</div>`:""}
+    </div>`;
+  }).join("");
+}
+
+async function act(kind, id){
+  const body = {id};
+  if(kind==="deny") body.reason = prompt("Reason (optional):")||"";
+  await fetch("/api/"+kind,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+  refresh();
+}
+
+refresh(); setInterval(refresh, 2000);
+</script>
+</body>
+</html>

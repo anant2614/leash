@@ -1,0 +1,17 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {
+    "nebius": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Nebius Token Factory",
+      "options": {
+        "baseURL": "https://api.tokenfactory.nebius.com/v1",
+        "apiKey": "{env:NEBIUS_API_KEY}"
+      },
+      "models": {
+        "nvidia/nemotron-3-super-120b-a12b": { "name": "Nemotron 3 Super" }
+      }
+    }
+  },
+  "model": "nebius/nvidia/nemotron-3-super-120b-a12b"
+}
